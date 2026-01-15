@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baños Públicos - VICTOR SARDINAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white py-8 px-4 shadow-lg text-center">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-2 uppercase tracking-wider">
+                Baños Públicos para uso gratis
+            </h1>
+            <h2 class="text-xl md:text-2xl font-light opacity-90">
+                DE VICTOR SARDINAS
+            </h2>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-10">
+        
+        <!-- Estado en Tiempo Real -->
+        <div id="status-card" class="bg-white rounded-2xl shadow-xl p-8 mb-10 text-center border-t-8 transition-all duration-500">
+            <h3 class="text-lg font-semibold text-slate-500 uppercase tracking-widest mb-2">Estado Actual</h3>
+            <div id="status-text" class="text-5xl font-black mb-4">Cargando...</div>
+            <div id="status-badge" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold uppercase tracking-tighter">
+                <span id="status-dot" class="w-3 h-3 rounded-full mr-2"></span>
+                <span id="status-msg">Verificando horario</span>
+            </div>
+            <p id="time-display" class="mt-6 text-slate-400 font-mono text-sm"></p>
+        </div>
+
+        <!-- Horarios -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl shadow-md p-6 border border-slate-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-calendar-alt text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Horarios de Atención</h3>
+                </div>
+                
+                <ul class="space-y-4" id="schedule-list">
+                    <!-- Lunes a Viernes -->
+                    <li class="flex justify-between items-center pb-2 border-b border-slate-50" data-days="1,2,3,4,5">
+                        <span class="font-medium text-slate-700">Lunes a Viernes</span>
+                        <span class="text-blue-700 font-bold bg-blue-50 px-3 py-1 rounded-md">08:00 - 20:00</span>
+                    </li>
+                    <!-- Sábado -->
+                    <li class="flex justify-between items-center pb-2 border-b border-slate-50" data-days="6">
+                        <span class="font-medium text-slate-700">Sábado</span>
+                        <span class="text-blue-700 font-bold bg-blue-50 px-3 py-1 rounded-md">09:00 - 18:00</span>
+                    </li>
+                    <!-- Domingo -->
+                    <li class="flex justify-between items-center pb-2 border-b border-slate-50" data-days="0">
+                        <span class="font-medium text-slate-700">Domingo</span>
+                        <span class="text-red-500 font-bold bg-red-50 px-3 py-1 rounded-md">Cerrado</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="bg-blue-900 text-white rounded-2xl shadow-md p-6 flex flex-col justify-center relative overflow-hidden">
+                <i class="fas fa-restroom absolute -right-4 -bottom-4 text-9xl opacity-10"></i>
+                <h3 class="text-2xl font-bold mb-4 italic">"Higiene y servicio para todos"</h3>
+                <p class="opacity-80 leading-relaxed mb-6">
+                    Comprometidos con la comunidad, Victor Sardinas ofrece este espacio gratuito manteniendo los más altos estándares de limpieza.
+                </p>
+                <div class="space-y-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                        <span>Uso 100% gratuito</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2 text-green-400"></i>
+                        <span>Limpieza constante</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center py-10 text-slate-400 text-sm">
+        <p>&copy; 2024 Baños Públicos Victor Sardinas. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        // Configuración de horarios (Lunes=1, Domingo=0)
+        const schedule = {
+            1: { open: 8, close: 20 }, // Lunes
+            2: { open: 8, close: 20 }, // Martes
+            3: { open: 8, close: 20 }, // Miércoles
+            4: { open: 8, close: 20 }, // Jueves
+            5: { open: 8, close: 20 }, // Viernes
+            6: { open: 9, close: 18 }, // Sábado
+            0: null                    // Domingo (Cerrado)
+        };
+
+        function updateStatus() {
+            const now = new Date();
+            const day = now.getDay();
+            const hour = now.getHours();
+            const minutes = now.getMinutes();
+            
+            const statusCard = document.getElementById('status-card');
+            const statusText = document.getElementById('status-text');
+            const statusBadge = document.getElementById('status-badge');
+            const statusDot = document.getElementById('status-dot');
+            const statusMsg = document.getElementById('status-msg');
+            const timeDisplay = document.getElementById('time-display');
+
+            const todaySchedule = schedule[day];
+            let isOpen = false;
+
+            if (todaySchedule) {
+                if (hour >= todaySchedule.open && hour < todaySchedule.close) {
+                    isOpen = true;
+                }
+            }
+
+            // Actualizar interfaz
+            if (isOpen) {
+                statusText.innerText = "ABIERTO";
+                statusText.className = "text-5xl font-black mb-4 text-green-600";
+                statusCard.style.borderTopColor = "#16a34a";
+                statusBadge.className = "inline-flex items-center px-4 py-2 rounded-full text-sm font-bold uppercase tracking-tighter bg-green-100 text-green-700";
+                statusDot.className = "w-3 h-3 rounded-full mr-2 bg-green-600 status-pulse";
+                statusMsg.innerText = "Disponible ahora";
+            } else {
+                statusText.innerText = "CERRADO";
+                statusText.className = "text-5xl font-black mb-4 text-red-600";
+                statusCard.style.borderTopColor = "#dc2626";
+                statusBadge.className = "inline-flex items-center px-4 py-2 rounded-full text-sm font-bold uppercase tracking-tighter bg-red-100 text-red-700";
+                statusDot.className = "w-3 h-3 rounded-full mr-2 bg-red-600";
+                statusMsg.innerText = "Fuera de horario";
+            }
+
+            // Mostrar hora actual amigable
+            const options = { weekday: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            timeDisplay.innerText = "Hora local: " + now.toLocaleDateString('es-ES', options);
+
+            // Resaltar el día actual en la lista
+            const items = document.querySelectorAll('#schedule-list li');
+            items.forEach(item => {
+                const days = item.getAttribute('data-days').split(',').map(Number);
+                if (days.includes(day)) {
+                    item.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500', 'pl-2');
+                } else {
+                    item.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500', 'pl-2');
+                }
+            });
+        }
+
+        // Ejecutar al cargar y cada minuto
+        updateStatus();
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>
